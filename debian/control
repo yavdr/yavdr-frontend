@@ -1,0 +1,22 @@
+Source: yavdr-frontend
+Section: video
+Priority: extra
+Maintainer: Marco Scholl <develop@marco-scholl.de>
+Build-Depends: debhelper (>= 8.0.0)
+Standards-Version: 3.9.2
+Homepage: http://www.yavdr.org
+
+Package: yavdr-frontend-base
+Architecture: all
+Depends: ${misc:Depends} yavdr-utils, openbox, xinit, xserver-xorg, xserver-xorg-video-vesa, xterm, xfonts-base, x11-xserver-utils, x11-utils
+Description: vdr base meta package for yaVDR
+
+Package: yavdr-frontend-softhddevice
+Architecture: all
+Depends: ${misc:Depends} yavdr-frontend-base, vdr-plugin-softhddevice
+Description: vdr base meta package for yaVDR
+
+Package: yavdr-frontend-graphtft
+Architecture: all
+Depends: ${misc:Depends}, yavdr-frontend-base
+Description: vdr plugin meta package for yaVDR
