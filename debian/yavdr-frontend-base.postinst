@@ -3,3 +3,4 @@
 /usr/bin/process-template --owner root --group root --mode 0644 /etc/init/openbox.conf
 /usr/bin/process-template --owner root --group root --mode 0644 /etc/init/openbox-second.conf
 /usr/bin/process-template --owner root --group root --mode 0644 /etc/init/openbox-tools.conf
+/usr/bin/process-template --owner root --group root --mode 0644 /etc/X11/xorg.conf.yavdr
