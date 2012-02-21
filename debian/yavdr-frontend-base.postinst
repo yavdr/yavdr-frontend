@@ -1,6 +1,23 @@
-#!/bin/sh
+#!/bin/sh -e
 
-/usr/bin/process-template --owner root --group root --mode 0644 /etc/init/openbox.conf
-/usr/bin/process-template --owner root --group root --mode 0644 /etc/init/openbox-second.conf
-/usr/bin/process-template --owner root --group root --mode 0644 /etc/init/openbox-tools.conf
-/usr/bin/process-template --owner root --group root --mode 0644 /etc/X11/xorg.conf.yavdr
+case "$1" in
+  configure)
+
+  # prefill hdf
+  . /usr/share/yavdr/helpers/hdf_prefill
+  hdf_prefill "system.display.primary.rate" "50"
+  hdf_prefill "system.display.primary.width" "1920"
+  hdf_prefill "system.display.primary.height" "1080"
+
+  # temlate files
+  /usr/bin/process-template --owner root --group root --mode 0644 /etc/init/openbox.conf
+  /usr/bin/process-template --owner root --group root --mode 0644 /etc/init/openbox-second.conf
+  /usr/bin/process-template --owner root --group root --mode 0644 /etc/init/openbox-tools.conf
+  /usr/bin/process-template --owner root --group root --mode 0644 /etc/X11/xorg.conf.yavdr
+
+  ;;
+
+esac
+
+exit 0
+
