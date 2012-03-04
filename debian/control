@@ -20,3 +20,8 @@ Package: yavdr-frontend-graphtft
 Architecture: all
 Depends: ${misc:Depends}, yavdr-frontend-base
 Description: vdr plugin meta package for yaVDR
+
+Package: yavdr-frontend-xbmc
+Architecture: all
+Depends: ${misc:Depends}, yavdr-frontend-base, xbmc
+Description: frontend for xbmc
