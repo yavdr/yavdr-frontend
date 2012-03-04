@@ -1,0 +1,20 @@
+#!/bin/bash
+
+prestart() {
+  echo "$UPSTART_JOB" > /tmp/started-frontend
+  if [ ! "$PER" = "frontend" ]; then
+    stop frontend PER="automatic" ||:
+  fi
+}
+
+poststop() {
+  # stop the started frontend stop frontend too
+  STARTED_FRONTEND=$(cat /tmp/started-frontend);
+
+  echo $STARTED_FRONTEND > /tmp/ggg
+
+  # don't start frontend if started by frontend or no frontend was started
+  if [ ! "$PER" = "frontend" -a ! "$STARTED_FRONTEND" = "" ]; then
+    start frontend ||:
+  fi
+}
