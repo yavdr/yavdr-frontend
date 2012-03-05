@@ -2,10 +2,6 @@
 
 . /etc/default/frontend
 
-FRONTEND=$(echo $UPSTART_JOB | sed 's/frontend-//')
-
-echo $FRONTEND > /tmp/x
-
 master_start() {
   CHECK_STATUS=$(initctl status frontend-$DEFAULT_FRONTEND)
   if [[ "$CHECK_STATUS" == *waiting* ]]; then
@@ -21,13 +17,17 @@ master_stop() {
 }
 
 prestart() {
+  FRONTEND=$(echo $UPSTART_JOB | sed 's/frontend-//')
+  echo $FRONTEND > /tmp/x
+
   # stop other frontends
   if [ -f /tmp/active-frontend ]; then
     STARTED_FRONTEND=$(cat /tmp/active-frontend)
-
-    CHECK_STATUS=$(initctl status frontend-$STARTED_FRONTEND)
-    if [[ "$CHECK_STATUS" == *running* ]]; then
-      initctl stop frontend-$STARTED_FRONTEND
+    if [ "$STARTED_FRONTEND" != "" ]; then
+      CHECK_STATUS=$(initctl status frontend-$STARTED_FRONTEND)
+      if [[ "$CHECK_STATUS" == *running* ]]; then
+        initctl stop frontend-$STARTED_FRONTEND
+      fi
     fi
   fi
 
@@ -44,6 +44,7 @@ prestart() {
 }
 
 poststop() {
+  FRONTEND=$(echo $UPSTART_JOB | sed 's/frontend-//')
 
   # sync job status to frontend if this default frontend
   if [ "$DEFAULT_FRONTEND" = "$FRONTEND" ]; then
