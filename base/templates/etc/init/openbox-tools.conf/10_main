@@ -2,23 +2,4 @@ start on openbox-started
 
 task
 
-env DISPLAY=:1
-export DISPLAY
-
-script
-  LANG=C /sbin/status vdr | grep -q process && /sbin/initctl emit vdr-frontend-restart || /bin/true
-
-  xset -dpms s off
-  if [ -e /etc/default/locale ] ; then
-    . /etc/default/locale
-  fi
-
-  if [ ! "$LANG" = "" ]; then
-    setxkbmap ${LANG/_*} ||:
-  else
-    setxkbmap ||:
-  fi
-
-  xrandr -r <?cs var:system.display.primary.rate ?>
-
-end script
+# dummy

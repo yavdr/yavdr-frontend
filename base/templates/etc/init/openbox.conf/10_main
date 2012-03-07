@@ -15,8 +15,6 @@ emits desktop-shutdown
 respawn
 
 script
-  export XORGCONFIG=/etc/X11/xorg.conf.yavdr
-
   if [ -n "$UPSTART_EVENTS" ]; then
     # Check kernel command-line for inhibitors, unless we are being called
     # manually
@@ -47,7 +45,7 @@ script
     . /etc/default/locale
   fi
 
-  exec xinit /usr/bin/openbox --config-file /etc/openbox/rc.xml --startup "/sbin/initctl emit --no-wait openbox-started" -- :1 vt7
+  exec xinit /usr/bin/openbox --config-file /etc/openbox/rc.xml --startup "/sbin/initctl emit --no-wait desktop-session-start" -- :0 vt7
 end script
 
 
