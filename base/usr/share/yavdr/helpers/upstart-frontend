@@ -53,6 +53,8 @@ poststop() {
     if [[ "$CHECK_STATUS" == *running* ]]; then
       initctl stop frontend
     fi
+  else
+    initctl emit start-frontend ||:
   fi
 
   # clear frontend
