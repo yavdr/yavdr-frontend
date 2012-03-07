@@ -1,9 +1,7 @@
     Identifier     "Screen0"
     Device         "Device0"
     Monitor        "Monitor0"
-    DefaultDepth    24
+    Option         "CustomEDID" "/etc/X11/primary.edid"
     SubSection     "Display"
-        Depth       24
-        Modes      "<?cs var:system.x11.display.0.default ?>"<?cs each:mode = system.x11.display.0.mode ?><?cs if:(mode != system.x11.display.0.default) ?> "<?cs var:mode ?>"<?cs /if ?><?cs /each ?>
+      Modes        "<?cs var:system.display.primary.width ?>x<?cs var:system.display.primary.height ?>_<?cs var:system.display.primary.rate ?>"
     EndSubSection
-
