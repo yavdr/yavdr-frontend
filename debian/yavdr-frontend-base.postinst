@@ -8,12 +8,16 @@ case "$1" in
   hdf_prefill "system.display.primary.rate" "50"
   hdf_prefill "system.display.primary.width" "1920"
   hdf_prefill "system.display.primary.height" "1080"
+  hdf_prefill "system.display.secondary.active" "0"
+  hdf_prefill "system.display.secondary.rate" "50"
+  hdf_prefill "system.display.secondary.width" "1920"
+  hdf_prefill "system.display.secondary.height" "1080"
 
   # temlate files
   /usr/bin/process-template --owner root --group root --mode 0644 /etc/init/openbox.conf
   /usr/bin/process-template --owner root --group root --mode 0644 /etc/init/openbox-second.conf
   /usr/bin/process-template --owner root --group root --mode 0644 /etc/init/openbox-tools.conf
-  /usr/bin/process-template --owner root --group root --mode 0644 /etc/X11/xorg.conf.yavdr
+  /usr/bin/process-template --owner root --group root --mode 0644 /etc/X11/xorg.conf
 
   ;;
 
