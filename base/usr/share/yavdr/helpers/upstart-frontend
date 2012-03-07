@@ -1,59 +1,60 @@
 #!/bin/bash
 
 . /etc/default/frontend
+. /usr/share/yavdr/helpers/upstart-base
 
 master_start() {
-  CHECK_STATUS=$(initctl status frontend-$DEFAULT_FRONTEND)
+  CHECK_STATUS=$(LC_MESSAGES=C initctl status frontend-$DEFAULT_FRONTEND)
   if [[ "$CHECK_STATUS" == *waiting* ]]; then
     initctl start frontend-$DEFAULT_FRONTEND
   fi
 }
 
 master_stop() {
-  CHECK_STATUS=$(initctl status frontend-$DEFAULT_FRONTEND)
+  CHECK_STATUS=$(LC_MESSAGES=C initctl status frontend-$DEFAULT_FRONTEND)
   if [[ "$CHECK_STATUS" == *running* ]]; then
     initctl stop frontend-$DEFAULT_FRONTEND
   fi
 }
 
 prestart() {
+  create_run_yavdr
   FRONTEND=$(echo $UPSTART_JOB | sed 's/frontend-//')
-  echo $FRONTEND > /tmp/x
 
   # stop other frontends
-  if [ -f /tmp/active-frontend ]; then
-    STARTED_FRONTEND=$(cat /tmp/active-frontend)
+  if [ -f /run/yavdr/active-frontend ]; then
+    STARTED_FRONTEND=$(cat /run/yavdr/active-frontend)
     if [ "$STARTED_FRONTEND" != "" ]; then
-      CHECK_STATUS=$(initctl status frontend-$STARTED_FRONTEND)
+      CHECK_STATUS=$(LC_MESSAGES=C initctl status frontend-$STARTED_FRONTEND)
       if [[ "$CHECK_STATUS" == *running* ]]; then
         initctl stop frontend-$STARTED_FRONTEND
       fi
     fi
   fi
 
-  echo "$FRONTEND" > /tmp/active-frontend
+  echo "$FRONTEND" > /run/yavdr/active-frontend
 
   # sync job status to frontend if this default frontend
   if [ "$DEFAULT_FRONTEND" = "$FRONTEND" ]; then
-    CHECK_STATUS=$(initctl status frontend)
+    CHECK_STATUS=$(LC_MESSAGES=C initctl status frontend)
     if [[ "$CHECK_STATUS" == *waiting* ]]; then
       initctl start frontend
     fi
   fi
-
 }
 
 poststop() {
+  create_run_yavdr
   FRONTEND=$(echo $UPSTART_JOB | sed 's/frontend-//')
 
   # sync job status to frontend if this default frontend
   if [ "$DEFAULT_FRONTEND" = "$FRONTEND" ]; then
-    CHECK_STATUS=$(initctl status frontend)
+    CHECK_STATUS=$(LC_MESSAGES=C initctl status frontend)
     if [[ "$CHECK_STATUS" == *running* ]]; then
       initctl stop frontend
     fi
   fi
 
   # clear frontend
-  echo "" > /tmp/active-frontend
+  echo "" > /run/yavdr/active-frontend
 }
