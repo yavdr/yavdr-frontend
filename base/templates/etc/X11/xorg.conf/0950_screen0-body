@@ -1,6 +1,6 @@
     Identifier     "Screen0"
     Device         "Device0"
-    Monitor        "Monitor0"
+    Monitor        "<?cs alt:system.display.primary.identifier?>Monitor0<?cs /alt ?>"
     Option         "CustomEDID" "/etc/X11/primary.edid"
     SubSection     "Display"
       Modes        "<?cs var:system.display.primary.width ?>x<?cs var:system.display.primary.height ?>_<?cs var:system.display.primary.rate ?>"
