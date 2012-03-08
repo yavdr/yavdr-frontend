@@ -1,7 +1,0 @@
-    Identifier     "Screen1"
-    Device         "Device1"
-    Monitor        "<?cs alt:system.display.secondary.identifier?>Monitor1<?cs /alt ?>"
-    Option         "CustomEDID" "/etc/X11/secondary.edid"
-    SubSection     "Display"
-      Modes        "<?cs var:system.display.secondary.width ?>x<?cs var:system.display.secondary.height ?>_<?cs var:system.display.secondary.rate ?>"
-    EndSubSection

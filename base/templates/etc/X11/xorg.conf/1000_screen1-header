@@ -1,2 +1,0 @@
-<?cs if:(system.display.secondary.active == "1") ?>
-Section "Screen"
