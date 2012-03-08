@@ -1,3 +1,4 @@
     Identifier     "<?cs alt:system.display.primary.identifier?>Monitor0<?cs /alt ?>"
     Option         "DPMS"
-    Option         "ExactModeTimingsDVI" "True"
+    Option         "ExactModeTimingsDVI" "True"<?cs each:mode = system.display.primary.modes ?>
+    ModeLine       "<?cs var:mode.name ?>" <?cs var:mode.value ?><?cs /each ?>
