@@ -3,6 +3,10 @@
 case "$1" in
   configure)
 
+  # conffiles
+  . /usr/share/yavdr/helpers/conffiles
+  install_conffile yavdr-frontend-softhddevice /etc/vdr/plugins/plugin.softhddevice.conf
+
   # prefill hdf
   . /usr/share/yavdr/helpers/hdf_prefill
   hdf_prefill "frontend.default" "softhddevice"
