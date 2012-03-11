@@ -1,4 +1,4 @@
 softhddevice/etc/*		etc/
+softhddevice/usr/*              usr/
 softhddevice/conffiles/*	etc/yavdr/conffiles/
 softhddevice/templates/*	usr/share/yavdr/templates/
-
