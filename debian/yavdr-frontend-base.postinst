@@ -3,17 +3,23 @@
 case "$1" in
   configure)
 
+  # conffiles
+  . /usr/share/yavdr/helpers/conffiles
+  install_conffile yavdr-frontend-base /etc/default/frontend
+
   # prefill hdf
   . /usr/share/yavdr/helpers/hdf_prefill
   hdf_prefill "system.display.0.active" "0"
   hdf_prefill "system.display.0.rate" "50"
   hdf_prefill "system.display.0.width" "1920"
   hdf_prefill "system.display.0.height" "1080"
+  hdf_prefill "backend.default" "dummy"
 
   # temlate files
   /usr/bin/process-template --owner root --group root --mode 0644 /etc/init/openbox.conf
   /usr/bin/process-template --owner root --group root --mode 0644 /etc/init/openbox-second.conf
   /usr/bin/process-template --owner root --group root --mode 0644 /etc/X11/xorg.conf
+  /usr/bin/process-template --owner root --group root --mode 0644 /etc/default/frontend
 
   ;;
 
