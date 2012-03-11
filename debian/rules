@@ -14,5 +14,5 @@
 
 override_dh_installdeb:
 	dh_installdeb
-	rm debian/yavdr-frontend-base/DEBIAN/conffiles
+	rm debian/yavdr-frontend/DEBIAN/conffiles
 	rm debian/yavdr-frontend-softhddevice/DEBIAN/conffiles
