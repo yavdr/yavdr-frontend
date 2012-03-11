@@ -14,15 +14,15 @@ Description: vdr base meta package for yaVDR
 
 Package: yavdr-frontend-softhddevice
 Architecture: all
-Depends: ${misc:Depends} yavdr-frontend-base, vdr-plugin-softhddevice
+Depends: ${misc:Depends} yavdr-frontend, vdr-plugin-softhddevice
 Description: vdr base meta package for yaVDR
 
 Package: yavdr-frontend-graphtft
 Architecture: all
-Depends: ${misc:Depends}, yavdr-frontend-base
+Depends: ${misc:Depends}, yavdr-frontend
 Description: vdr plugin meta package for yaVDR
 
 Package: yavdr-frontend-xbmc
 Architecture: all
-Depends: ${misc:Depends}, yavdr-frontend-base, xbmc
+Depends: ${misc:Depends}, yavdr-frontend, xbmc
 Description: frontend for xbmc
