@@ -723,6 +723,13 @@
     <skip_taskbar>yes</skip_taskbar>
  </application>
 
+   <application name="softhddevice">
+     <decor>no</decor>
+    <maximized>true</maximized>
+    <skip_pager>yes</skip_pager>
+    <skip_taskbar>yes</skip_taskbar>
+ </application>
+
    <application name="xine*">
      <decor>no</decor>
     <maximized>true</maximized>
