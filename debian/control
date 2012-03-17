@@ -26,3 +26,8 @@ Package: yavdr-frontend-xbmc
 Architecture: all
 Depends: ${misc:Depends}, yavdr-frontend, xbmc
 Description: frontend for xbmc
+
+Package: yavdr-frontend-firefox
+Architecture: all
+Depends: ${misc:Depends}, yavdr-frontend, firefox
+Description: frontend for firefox

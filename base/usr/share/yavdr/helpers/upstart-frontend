@@ -21,43 +21,60 @@ prestart() {
   create_run_yavdr
   FRONTEND=$(echo $UPSTART_JOB | sed 's/frontend-//')
 
-  # stop other frontends
-  if [ -f /run/yavdr/active-frontend ]; then
-    STARTED_FRONTEND=$(cat /run/yavdr/active-frontend)
-    if [ "$STARTED_FRONTEND" != "" ]; then
-      CHECK_STATUS=$(LC_MESSAGES=C /sbin/initctl status frontend-$STARTED_FRONTEND)
-      if [[ "$CHECK_STATUS" == *running* ]]; then
-        /sbin/initctl stop frontend-$STARTED_FRONTEND
+  # default value for standalone
+  if [ "x$STANDALONE" == "x" ]; then
+    STANDALONE="yes"
+  fi
+
+  # standalone
+  #if [ "$STANDALONE" == "yes" ] ; then
+    # stop other frontends
+    if [ -f /run/yavdr/active-frontend ]; then
+      STARTED_FRONTEND=$(cat /run/yavdr/active-frontend)
+      if [ "$STARTED_FRONTEND" != "" ]; then
+        CHECK_STATUS=$(LC_MESSAGES=C /sbin/initctl status frontend-$STARTED_FRONTEND)
+        if [[ "$CHECK_STATUS" == *running* ]]; then
+          /sbin/initctl stop frontend-$STARTED_FRONTEND
+        fi
       fi
     fi
-  fi
 
-  echo "$FRONTEND" > /run/yavdr/active-frontend
-  chmod a+w /run/yavdr/active-frontend
+    echo "$FRONTEND" > /run/yavdr/active-frontend
+    chmod a+w /run/yavdr/active-frontend
+    chown vdr:vdr /run/yavdr/active-frontend
 
-  # sync job status to frontend if this default frontend
-  if [ "$DEFAULT_FRONTEND" = "$FRONTEND" ]; then
-    CHECK_STATUS=$(LC_MESSAGES=C /sbin/initctl status frontend)
-    if [[ "$CHECK_STATUS" == *waiting* ]]; then
-      /sbin/initctl start frontend
+    # sync job status to frontend if this default frontend
+    if [ "$DEFAULT_FRONTEND" = "$FRONTEND" ]; then
+      CHECK_STATUS=$(LC_MESSAGES=C /sbin/initctl status frontend)
+      if [[ "$CHECK_STATUS" == *waiting* ]]; then
+        /sbin/initctl start frontend
+      fi
     fi
-  fi
+  #fi
 }
 
 poststop() {
   create_run_yavdr
   FRONTEND=$(echo $UPSTART_JOB | sed 's/frontend-//')
 
-  # sync job status to frontend if this default frontend
-  if [ "$DEFAULT_FRONTEND" = "$FRONTEND" ]; then
-    CHECK_STATUS=$(LC_MESSAGES=C /sbin/initctl status frontend)
-    if [[ "$CHECK_STATUS" == *running* ]]; then
-      /sbin/initctl stop frontend
-    fi
-  else
-    /sbin/initctl emit start-frontend ||:
+  # default value for standalone
+  if [ "x$STANDALONE" == "x" ]; then
+    STANDALONE="yes"
   fi
 
-  # clear frontend
-  echo "" > /run/yavdr/active-frontend
+  # standalone
+  #if [ "$STANDALONE" == "yes" ]; then
+    # sync job status to frontend if this default frontend
+    if [ "$DEFAULT_FRONTEND" == "$FRONTEND" ]; then
+      CHECK_STATUS=$(LC_MESSAGES=C /sbin/initctl status frontend)
+      if [[ "$CHECK_STATUS" == *running* ]]; then
+        /sbin/initctl stop frontend
+      fi
+    else
+      /sbin/initctl emit start-frontend ||:
+    fi
+
+    # clear frontend
+    echo "" > /run/yavdr/active-frontend
+  #fi
 }
