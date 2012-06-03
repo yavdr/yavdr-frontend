@@ -711,39 +711,38 @@
 -->
 
 <!-- match all windows, and remove their decorations -->
-   <application class="*">
-     <decor>yes</decor>
+  <application class="*">
+    <decor>yes</decor>
     <maximized>false</maximized>
- </application>
+  </application>
 
-   <application name="VDR*">
-     <decor>no</decor>
+  <application name="VDR*">
+    <decor>no</decor>
     <maximized>true</maximized>
     <skip_pager>yes</skip_pager>
     <skip_taskbar>yes</skip_taskbar>
- </application>
+  </application>
 
-   <application name="softhddevice">
-     <decor>no</decor>
+  <application name="xine*">
+    <decor>no</decor>
     <maximized>true</maximized>
     <skip_pager>yes</skip_pager>
     <skip_taskbar>yes</skip_taskbar>
- </application>
+  </application>
 
-   <application name="xine*">
-     <decor>no</decor>
-    <maximized>true</maximized>
-    <skip_pager>yes</skip_pager>
-    <skip_taskbar>yes</skip_taskbar>
- </application>
-
-   <application name="dclock">
-     <decor>no</decor>   
+  <application name="dclock">
+    <decor>no</decor>   
     <maximized>false</maximized>
     <skip_pager>yes</skip_pager>
     <skip_taskbar>yes</skip_taskbar>
- </application>
-
+  </application>
+   
+  <application title="softhddevice">
+    <decor>no</decor>
+    <maximized>true</maximized>
+    <skip_pager>yes</skip_pager>
+    <skip_taskbar>yes</skip_taskbar>
+  </application>
 </applications>
 
 </openbox_config>
