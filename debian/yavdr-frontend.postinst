@@ -1,4 +1,4 @@
-#!/bin/sh -e
+#!/bin/bash -e
 
 case "$1" in
   configure)
@@ -16,10 +16,7 @@ case "$1" in
   hdf_prefill "backend.default" "dummy"
 
   # temlate files
-  /usr/bin/process-template --owner root --group root --mode 0644 /etc/init/openbox.conf
-  /usr/bin/process-template --owner root --group root --mode 0644 /etc/init/openbox-second.conf
-  /usr/bin/process-template --owner root --group root --mode 0644 /etc/X11/xorg.conf
-  /usr/bin/process-template --owner root --group root --mode 0644 /etc/default/frontend
+  yavdr-template-frontend
 
   ;;
 

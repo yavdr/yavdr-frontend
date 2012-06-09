@@ -1,4 +1,4 @@
-#!/bin/sh -e
+#!/bin/bash -e
 
 case "$1" in
   configure)
@@ -12,10 +12,7 @@ case "$1" in
   hdf_prefill "frontend.default" "softhddevice"
 
   # temlate files
-  /usr/bin/process-template --owner root --group root --mode 0644 /etc/vdr/plugins/plugin.softhddevice.conf
-  /usr/bin/process-template --owner root --group root --mode 0644 /etc/vdr/plugins/order.conf
-  /usr/bin/process-template --owner root --group root --mode 0644 /etc/default/frontend
-
+  yavdr-template-frontend
   ;;
 
 esac

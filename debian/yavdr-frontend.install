@@ -2,3 +2,4 @@ base/usr/*		usr/
 base/conffiles/*	etc/yavdr/conffiles/
 base/templates/*	usr/share/yavdr/templates/
 base/etc/*		etc/
+base/scripts/*		usr/bin/

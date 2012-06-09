@@ -1,0 +1,18 @@
+#!/bin/bash -e
+
+/usr/bin/process-template --owner root --group root --mode 0644 /etc/init/openbox.conf
+/usr/bin/process-template --owner root --group root --mode 0644 /etc/init/openbox-second.conf
+/usr/bin/process-template --owner root --group root --mode 0644 /etc/X11/xorg.conf
+/usr/bin/process-template --owner root --group root --mode 0644 /etc/default/frontend
+/usr/bin/process-template --owner root --group root --mode 0644 /etc/init/frontend.conf
+
+cd /usr/share/yavdr/frontends/
+for FRONTEND in *; do
+  /usr/bin/process-template --owner root --group root --mode 0644 /etc/init/frontend-$FRONTEND.conf ||:
+done
+
+# shd - todo better handling
+/usr/bin/process-template --owner root --group root --mode 0644 /etc/vdr/plugins/plugin.softhddevice.conf ||:
+/usr/bin/process-template --owner root --group root --mode 0644 /etc/vdr/plugins/order.conf ||:
+/usr/bin/process-template --owner root --group root --mode 0644 /etc/default/frontend ||:
+
