@@ -1,5 +1,5 @@
   export HOME=/var/lib/vdr
-  export DISPLAY=:0
+  export DISPLAY=$DISPLAY
 
   eval ulimit -c unlimited
 
