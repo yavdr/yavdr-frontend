@@ -1,9 +1,0 @@
-#!/bin/bash -e
-
-if [ remove = "$1" ]; then
-
-  # conffiles
-  . /usr/share/yavdr/helpers/conffiles
-  remove_conffile yavdr-frontend-base /etc/default/frontend
-
-fi

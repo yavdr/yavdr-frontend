@@ -8,7 +8,7 @@
 
 cd /usr/share/yavdr/frontends/
 for FRONTEND in *; do
-  /usr/bin/process-template --owner root --group root --mode 0644 /etc/init/frontend-$FRONTEND.conf ||:
+  /usr/bin/process-template --owner root --group root --mode 0644 /etc/init/frontend-$FRONTEND.conf
 done
 
 # shd - todo better handling

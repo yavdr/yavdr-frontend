@@ -1,0 +1,13 @@
+#!/bin/bash -e
+
+case "$1" in
+  configure)
+
+  # temlate files
+  yavdr-template-frontend
+
+  ;;
+esac
+
+exit 0
+
