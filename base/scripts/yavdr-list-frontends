@@ -1,0 +1,5 @@
+#!/bin/bash
+
+for FRONTEND in `ls /usr/share/yavdr/frontends/`; do
+  echo $FRONTEND
+done

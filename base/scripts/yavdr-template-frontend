@@ -6,8 +6,7 @@
 /usr/bin/process-template --owner root --group root --mode 0644 /etc/default/frontend
 /usr/bin/process-template --owner root --group root --mode 0644 /etc/init/frontend.conf
 
-cd /usr/share/yavdr/frontends/
-for FRONTEND in *; do
+for FRONTEND in `yavdr-list-frontends`; do
   /usr/bin/process-template --owner root --group root --mode 0644 /etc/init/frontend-$FRONTEND.conf
   if [ -f /usr/bin/yavdr-template-frontend-$FRONTEND ]; then
     /usr/bin/yavdr-template-frontend-$FRONTEND
