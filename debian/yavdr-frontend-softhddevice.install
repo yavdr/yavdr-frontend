@@ -1,3 +1,4 @@
-softhddevice/usr/*              usr/
+softhddevice/usr/*		usr/
+softhddevice/scripts/*		usr/bin/
 softhddevice/conffiles/*	etc/yavdr/conffiles/
 softhddevice/templates/*	usr/share/yavdr/templates/

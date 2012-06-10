@@ -9,10 +9,7 @@
 cd /usr/share/yavdr/frontends/
 for FRONTEND in *; do
   /usr/bin/process-template --owner root --group root --mode 0644 /etc/init/frontend-$FRONTEND.conf
+  if [ -f /usr/bin/yavdr-template-frontend-$FRONTEND ]; then
+    /usr/bin/yavdr-template-frontend-$FRONTEND
+  fi
 done
-
-# shd - todo better handling
-/usr/bin/process-template --owner root --group root --mode 0644 /etc/vdr/plugins/plugin.softhddevice.conf ||:
-/usr/bin/process-template --owner root --group root --mode 0644 /etc/vdr/plugins/order.conf ||:
-/usr/bin/process-template --owner root --group root --mode 0644 /etc/default/frontend ||:
-
