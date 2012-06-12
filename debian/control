@@ -9,7 +9,7 @@ Homepage: http://www.yavdr.org
 Package: yavdr-frontend
 Architecture: all
 Conflicts: yavdr-frontend-base
-Depends: ${misc:Depends} yavdr-base, hsetroot, openbox, xinit, xserver-xorg, xserver-xorg-video-vesa, xterm, xfonts-base, x11-xserver-utils, x11-utils
+Depends: ${misc:Depends} yavdr-base, hsetroot, openbox, xinit, xserver-xorg, xserver-xorg-video-vesa, xterm, xfonts-base, x11-xserver-utils, x11-utils, vdr-plugin-softhddevice
 Description: vdr base meta package for yaVDR
 
 Package: yavdr-frontend-softhddevice
