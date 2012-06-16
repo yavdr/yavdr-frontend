@@ -4,7 +4,6 @@ logger -t yavdr-template-frontend "templating"
 /usr/bin/process-template --owner root --group root --mode 0644 /etc/init/openbox.conf
 /usr/bin/process-template --owner root --group root --mode 0644 /etc/init/openbox-second.conf
 /usr/bin/process-template --owner root --group root --mode 0644 /etc/X11/xorg.conf
-/usr/bin/process-template --owner root --group root --mode 0644 /etc/default/frontend
 /usr/bin/process-template --owner root --group root --mode 0644 /etc/init/frontend.conf
 
 for FRONTEND in `yavdr-list-frontend-modules`; do

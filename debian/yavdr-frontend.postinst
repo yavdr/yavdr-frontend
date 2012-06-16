@@ -4,7 +4,7 @@ case "$1" in
   configure)
 
   # prefill hdf
-  yavdr-db-tool -k frontend.default -a preset -v "softhddevice"
+  yavdr-db-tool -k module.frontend -a preset -v "softhddevice"
   yavdr-db-tool -k system.display.0.active -a preset -v "1"
   yavdr-db-tool -k system.display.0.rate -a preset -v "50"
   yavdr-db-tool -k system.display.0.width -a preset -v "1920"
