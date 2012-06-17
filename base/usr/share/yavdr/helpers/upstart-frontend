@@ -1,81 +1,85 @@
 #!/bin/bash -e
 
-DEFAULT_FRONTEND=$(yavdr-db-tool -k module.frontend)
+#DEFAULT_FRONTEND=$(yavdr-db-tool -k module.frontend)
 
-. /usr/share/yavdr/helpers/upstart-base
+#. /usr/share/yavdr/helpers/upstart-base
 
 master_start() {
-  CHECK_STATUS=$(LC_MESSAGES=C /sbin/initctl status frontend-$DEFAULT_FRONTEND)
-  if [[ "$CHECK_STATUS" == *waiting* ]]; then
-    /sbin/initctl start frontend-$DEFAULT_FRONTEND
-  fi
+  true
+#  CHECK_STATUS=$(LC_MESSAGES=C /sbin/initctl status frontend-$DEFAULT_FRONTEND)
+#  if [[ "$CHECK_STATUS" == *waiting* ]]; then
+#    /sbin/initctl start frontend-$DEFAULT_FRONTEND
+#  fi
 }
 
 master_stop() {
-  CHECK_STATUS=$(LC_MESSAGES=C /sbin/initctl status frontend-$DEFAULT_FRONTEND)
-  if [[ "$CHECK_STATUS" == *running* ]]; then
-    /sbin/initctl stop frontend-$DEFAULT_FRONTEND
-  fi
+  true
+#  CHECK_STATUS=$(LC_MESSAGES=C /sbin/initctl status frontend-$DEFAULT_FRONTEND)
+#  if [[ "$CHECK_STATUS" == *running* ]]; then
+#    /sbin/initctl stop frontend-$DEFAULT_FRONTEND
+#  fi
 }
 
 prestart() {
-  create_run_yavdr
-  FRONTEND=$(echo $UPSTART_JOB | sed 's/frontend-//')
+  true
+#  create_run_yavdr
+#  FRONTEND=$(echo $UPSTART_JOB | sed 's/frontend-//')
 
   # default value for standalone
-  if [ "x$STANDALONE" == "x" ]; then
-    STANDALONE="yes"
-  fi
+#  if [ "x$STANDALONE" == "x" ]; then
+#    STANDALONE="yes"
+#  fi
 
   # standalone
   #if [ "$STANDALONE" == "yes" ] ; then
     # stop other frontends
-    if [ -f /run/yavdr/active-frontend ]; then
-      STARTED_FRONTEND=$(cat /run/yavdr/active-frontend)
-      if [ "$STARTED_FRONTEND" != "" ]; then
-        CHECK_STATUS=$(LC_MESSAGES=C /sbin/initctl status frontend-$STARTED_FRONTEND)
-        if [[ "$CHECK_STATUS" == *running* ]]; then
-          /sbin/initctl stop frontend-$STARTED_FRONTEND
-        fi
-      fi
-    fi
+#    if [ -f /run/yavdr/active-frontend ]; then
+#      STARTED_FRONTEND=$(cat /run/yavdr/active-frontend)
+#      if [ "$STARTED_FRONTEND" != "" ]; then
+#        CHECK_STATUS=$(LC_MESSAGES=C /sbin/initctl status frontend-$STARTED_FRONTEND)
+#        if [[ "$CHECK_STATUS" == *running* ]]; then
+#          /sbin/initctl stop frontend-$STARTED_FRONTEND
+#        fi
+#      fi
+#    fi
 
-    echo "$FRONTEND" > /run/yavdr/active-frontend
-    chmod a+w /run/yavdr/active-frontend
-    chown vdr:vdr /run/yavdr/active-frontend
+#    echo "$FRONTEND" > /run/yavdr/active-frontend
+#    chmod a+w /run/yavdr/active-frontend
+#    chown vdr:vdr /run/yavdr/active-frontend
 
     # sync job status to frontend if this default frontend
-    if [ "$DEFAULT_FRONTEND" = "$FRONTEND" ]; then
-      CHECK_STATUS=$(LC_MESSAGES=C /sbin/initctl status frontend)
-      if [[ "$CHECK_STATUS" == *waiting* ]]; then
-        /sbin/initctl start frontend
-      fi
-    fi
+#    if [ "$DEFAULT_FRONTEND" = "$FRONTEND" ]; then
+#      CHECK_STATUS=$(LC_MESSAGES=C /sbin/initctl status frontend)
+#      if [[ "$CHECK_STATUS" == *waiting* ]]; then
+#        /sbin/initctl start frontend
+#      fi
+#    fi
   #fi
 }
 
 poststop() {
-  create_run_yavdr
-  FRONTEND=$(echo $UPSTART_JOB | sed 's/frontend-//')
+  true
+#  create_run_yavdr
+#  FRONTEND=$(echo $UPSTART_JOB | sed 's/frontend-//')
 
   # default value for standalone
-  if [ "x$STANDALONE" == "x" ]; then
-    STANDALONE="yes"
-  fi
+#  if [ "x$STANDALONE" == "x" ]; then
+#    STANDALONE="yes"
+#  fi
 
   # standalone
   #if [ "$STANDALONE" == "yes" ]; then
     # sync job status to frontend if this default frontend
-    if [ "$DEFAULT_FRONTEND" == "$FRONTEND" ]; then
-      CHECK_STATUS=$(LC_MESSAGES=C /sbin/initctl status frontend)
-      if [[ "$CHECK_STATUS" == *running* ]]; then
-        /sbin/initctl stop frontend
-      fi
-    else
-      /sbin/initctl emit start-frontend ||:
-    fi
+#    if [ "$DEFAULT_FRONTEND" == "$FRONTEND" ]; then
+#      CHECK_STATUS=$(LC_MESSAGES=C /sbin/initctl status frontend)
+#      if [[ "$CHECK_STATUS" == *running* ]]; then
+#        /sbin/initctl stop frontend
+#      fi
+#    else
+#      /sbin/initctl emit start-frontend ||:
+#    fi
 
     # clear frontend
-    echo "" > /run/yavdr/active-frontend
+#    echo "" > /run/yavdr/active-frontend
   #fi
 }
