@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/bin/sh -e
 
 logger -t yavdr-template-frontend "templating"
 /usr/bin/process-template --owner root --group root --mode 0644 /etc/init/openbox.conf
@@ -8,7 +8,7 @@ logger -t yavdr-template-frontend "templating"
 
 for FRONTEND in `yavdr-list-frontend-modules`; do
   /usr/bin/process-template --owner root --group root --mode 0644 /etc/init/frontend-$FRONTEND.conf
-  if [ -f /usr/bin/yavdr-template-frontend-$FRONTEND ]; then
-    /usr/bin/yavdr-template-frontend-$FRONTEND
+  if [ -f /usr/bin/_yavdr-template-frontend-$FRONTEND ]; then
+    /usr/bin/_yavdr-template-frontend-$FRONTEND
   fi
 done

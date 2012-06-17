@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 for FRONTEND in `ls /usr/share/yavdr/modules/frontends/`; do
   echo $FRONTEND
