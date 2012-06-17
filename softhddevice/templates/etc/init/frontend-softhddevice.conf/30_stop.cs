@@ -1,2 +1,2 @@
-<?cs include:"/usr/share/yavdr/templates/includes/frontend-stop.cs" ?>
+stop on stopping backend-vdr or suspend or stopping openbox
 
