@@ -1,0 +1,17 @@
+yavdr-frontend (0.0.1-2yavdr0) precise; urgency=medium
+
+  * add default configuration 
+
+ -- Alexander Grothe <seahawk1986@gmx.de>  Wed, 12 Feb 2014 13:09:12 +0100
+
+yavdr-frontend (0.0.1-1yavdr0) precise; urgency=medium
+
+  * add install path for python3 modules 
+
+ -- Alexander Grothe <seahawk1986@gmx.de>  Mon, 10 Feb 2014 19:48:33 +0100
+
+yavdr-frontend (0.0.1-0yavdr0) precise; urgency=medium
+
+  * initial build
+
+ -- Alexander Grothe <seahawk1986@gmx.de>  Mon, 10 Feb 2014 19:31:12 +0100

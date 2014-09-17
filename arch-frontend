@@ -1,0 +1,32 @@
+#!/usr/bin/python3
+import configparser
+import datetime
+from gi.repository import GObject
+import dbus
+import dbus.service
+from dbus.mainloop.glib import DBusGMainLoop
+dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
+import itertools
+import logging
+from optparse import OptionParser
+import os
+import signal
+import struct
+import subprocess
+import sys
+from dbus2vdr import DBus2VDR
+from frontends.base import vdrFrontend
+from frontends.Softhddevice import Softhddevice
+from frontends.xbmc import XBMC
+from frontends.xineliboutput import VDRsxfe
+from tools.lirc_socket import lircConnection
+
+from frontend import *
+
+
+if __name__ == '__main__':
+    DBusGMainLoop(set_as_default=True)
+    options = Options()
+    main = Main(options.get_options())
+    main.loop = GObject.MainLoop()
+    main.loop.run()
