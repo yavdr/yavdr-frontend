@@ -16,7 +16,6 @@
 '''
 
 import configparser
-import datetime
 from gi.repository import GObject
 import dbus
 import dbus.service
@@ -28,7 +27,7 @@ from optparse import OptionParser
 import os
 import time
 import signal
-import struct
+import shlex
 import subprocess
 import sys
 from dbus2vdr import DBus2VDR
@@ -79,13 +78,15 @@ class Main(dbus.service.Object):
         self.switch = itertools.cycle(self.frontends.keys())
         while not next(self.switch) == self.settings.frontend:
             pass
-        logging.debug("set main frontend to {0}".format(self.settings.frontend))
+        logging.debug("set main frontend to {0}".format(
+            self.settings.frontend))
         self.startup()
 
     def restart(self):
         try:
             self.frontends['vdr'].detach()
-        except: pass
+        except:
+            pass
         self.frontends['vdr'] = self.get_vdrFrontend()
         for frontend, obj in self.frontends.items():
             if not obj:
@@ -96,19 +97,19 @@ class Main(dbus.service.Object):
     def startup(self):
         self.wakeup = self.checkWakeup()
         logging.debug("running startup()")
-        if self.settings.attach == 'never' or (
-                        self.settings.attach == 'auto' and not self.wakeup):
+        if self.settings.attach == 'never' or (self.settings.attach == 'auto'
+                                               and not self.wakeup):
             self.current = self.settings.frontend
             self.setBackground()
             return
-        elif self.current == 'xbmc' or (
-                        self.settings.frontend == 'xbmc' and not self.current):
+        elif self.current == 'xbmc' or (self.settings.frontend == 'xbmc' and
+                                        not self.current):
             self.frontends['xbmc'].attach()
             self.current = 'xbmc'
             self.dbus2vdr.Remote.Disable()
             logging.debug('startup: frontend is xbmc')
-        elif self.current == 'vdr' or (
-                        self.settings.frontend == 'vdr' and not self.current):
+        elif self.current == 'vdr' or (self.settings.frontend == 'vdr' and
+                                       not self.current):
             # check if vdr is ready
             if self.dbus2vdr.checkVDRstatus():
                 self.vdrStatus = 1
@@ -143,7 +144,7 @@ class Main(dbus.service.Object):
 
     @dbus.service.method('de.yavdr.frontend', out_signature='s')
     def switchFrontend(self):
-        if  self.status() == 2:
+        if self.status() == 2:
             self.resume()
         if self.current == 'vdr':
             self.dbus2vdr.Remote.Disable()
@@ -156,12 +157,31 @@ class Main(dbus.service.Object):
             self.attach()
         return self.getFrontend()
 
+    @dbus.service.method('de.yavdr.frontend', out_signature='s')
+    def tempDisplay(self):
+        self.settings.update_display(os.environ['DISPLAY'])
+        return os.environ['DISPLAY']
+
+    @dbus.service.method('de.yavdr.frontend',
+                         in_signature='s',
+                         out_signature='b')
+    def setDisplay(self, display=None):
+        if display:
+            os.env['DISPLAY'] = display
+            return True
+        else:
+            return False
+
+    @dbus.service.method('de.yavdr.frontend', out_signature='s')
+    def getDisplay(self):
+        return os.env['DISPLAY']
+
     def completeFrontendSwitch(self):
         self.attach()
         if self.current == 'vdr':
             self.dbus2vdr.Remote.Enable()
-        if self.wants_shutdown and self.frontends[
-                                        self.current].name == 'softhddevice':
+        if self.wants_shutdown and self.frontends[self.current
+                                                  ].name == 'softhddevice':
             self.send_shutdown()
             self.wants_shutdown = False
             self.dbus2vdr.Remote.Enable()
@@ -170,7 +190,8 @@ class Main(dbus.service.Object):
 
     @dbus.service.method('de.yavdr.frontend', out_signature='s')
     def getFrontend(self):
-            m = "current frontend is {0}".format(self.frontends[self.current].name)
+            m = "current frontend is {0}".format(self.frontends[self.current
+                                                                ].name)
             return m
 
     @dbus.service.method('de.yavdr.frontend', in_signature='s',
@@ -181,23 +202,6 @@ class Main(dbus.service.Object):
         except:
             pass
         if not self.external:
-            '''x = subprocess.Popen(['/usr/bin/xdotool', 'key', 'ctrl'],
-                                env=os.environ,
-                                stdout=subprocess.PIPE,
-                                stderr=subprocess.PIPE)
-            a = subprocess.Popen(['/usr/bin/xset', 'dpms', 'force', 'on'],
-                                env=os.environ,
-                                stdout=subprocess.PIPE,
-                                stderr=subprocess.PIPE)
-            b = subprocess.Popen(['/usr/bin/xset', '-dpms',],
-                                env=os.environ,
-                                stdout=subprocess.PIPE,
-                                stderr=subprocess.PIPE)
-            c = subprocess.Popen(['/usr/bin/xset', 's', 'off'],
-                               env=os.environ,
-                               stdout=subprocess.PIPE,
-                               stderr=subprocess.PIPE)
-            #logging.debug(x.communicate(),a.communitcate(),b.communicate(),c.communicate())'''
             if self.current:
                 return self.frontends[self.current].attach(options)
             self.setBackground()
@@ -220,10 +224,11 @@ class Main(dbus.service.Object):
     @dbus.service.method('de.yavdr.frontend', out_signature='i')
     def status(self):
         if not self.external and self.current:
-           return self.frontends[self.current].status()
+            return self.frontends[self.current].status()
         elif not self.current:
-           return 0
-        else: return 3
+            return 0
+        else:
+            return 3
 
     @dbus.service.method('de.yavdr.frontend', out_signature='b')
     def begin_external(self):
@@ -232,7 +237,10 @@ class Main(dbus.service.Object):
         snd_free = False
         while not snd_free:
             logging.debug("check if frontend has freed sound device")
-            fuser_pid = subprocess.Popen(['/usr/sbin/fuser', '-v', '/dev/snd/*p'], stdout=subprocess.PIPE,stderr=subprocess.PIPE, shell=True)
+            fuser_pid = subprocess.Popen(['/usr/sbin/fuser', '-v',
+                                          '/dev/snd/*p'],
+                                         stdout=subprocess.PIPE,
+                                         stderr=subprocess.PIPE, shell=True)
             fuser_pid.wait()
             stdout, stderr = fuser_pid.communicate()
             logging.debug("fuser output: %s", stderr)
@@ -250,20 +258,22 @@ class Main(dbus.service.Object):
         self.external = False
         self.attach()
         return True
-    @dbus.service.method('de.yavdr.frontend',out_signature='b')
+
+    @dbus.service.method('de.yavdr.frontend', out_signature='b')
     def soft_detach(self):
         logging.debug("running soft_detach")
-        if self.settings.get_setting('Frontend', 'attach', 'always') in [
-                                                            'auto', 'always']:
+        if self.settings.get_setting('Frontend', 'attach', 'always'
+                                     ) in ['auto', 'always']:
             self.detach()
             logging.debug("add timer for send_shutdown")
-            self.timer = GObject.timeout_add(300000,self.send_shutdown)
+            self.timer = GObject.timeout_add(300000, self.send_shutdown)
         return False
 
-    @dbus.service.method('de.yavdr.frontend',out_signature='b')
-    def send_shutdown(self,user=False):
+    @dbus.service.method('de.yavdr.frontend', out_signature='b')
+    def send_shutdown(self, user=False):
         disable_remote = False
-        if  self.dbus2vdr.Shutdown.ConfirmShutdown(user) and self.check_lifeguard():
+        if (self.dbus2vdr.Shutdown.ConfirmShutdown(user)
+                and self.check_lifeguard()):
             logging.debug("send 'HitKey POWER' to vdr")
             if not self.dbus2vdr.Remote.Status():
                 self.dbus2vdr.Remote.Enable()
@@ -275,34 +285,38 @@ class Main(dbus.service.Object):
             logging.debug("send_shutdown: VDR not ready to shut down")
         return True
 
-
     @dbus.service.method('de.yavdr.frontend', in_signature='s',
                          out_signature='b')
     def setBackground(self, path=None):
-        status = self.status ()
-        logging.debug("setBackground: status is %s, type is %s" % (status, type(status)))
+        status = self.status()
+        logging.debug("setBackground: status is %s, type is %s" %
+                      (status, type(status)))
         if status == 0:
             logging.debug("status is 0")
             if not path:
-                logging.debug("path not yet defined")
-                logging.debug(self.settings.get_setting('Frontend', 'bg_detached', None))
-                path = self.settings.get_setting('Frontend', 'bg_detached', None)
+                logging.debug(self.settings.get_setting('Frontend',
+                                                        'bg_detached', None))
+                path = self.settings.get_setting('Frontend', 'bg_detached',
+                                                 None)
         elif status == 1:
             if not path:
-                path = self.settings.get_setting('Frontend', 'bg_attached', None)
+                path = self.settings.get_setting('Frontend', 'bg_attached',
+                                                 None)
         logging.debug("Background path is %s" % path)
         if path:
-            logging.debug("command for setting bg is: /usr/bin/feh --bg-fill %s" % (path))
-            a = subprocess.call(["/usr/bin/feh", "--bg-fill", path], env=os.environ)
-            #logging.debug("feh call: %s\n%s" % (a.communicate())
+            command = ["/usr/bin/feh", "--bg-fill", path]
+            logging.debug("command for setting bg is: %s" % (
+                " ".join(command)))
+            subprocess.call(command, env=os.environ)
             pass
         else:
             pass
 
-    def inhibit(self, what='sleep:shutdown', who='First Base', why="left field",
-                                                                mode="block"):
+    def inhibit(self, what='sleep:shutdown', who='First Base',
+                why="left field", mode="block"):
         try:
-            a = self.bus.get_object('org.freedesktop.login1', '/org/freedesktop/login1')
+            a = self.bus.get_object('org.freedesktop.login1',
+                                    '/org/freedesktop/login1')
             interface = 'org.freedesktop.login1.Manager'
             fd = a.Inhibit(what, who, why, mode, dbus_interface=interface)
             return fd
@@ -313,7 +327,8 @@ class Main(dbus.service.Object):
     def check_lifeguard(self):
         try:
             if_lifeguard = "org.yavdr.lifeguard"
-            lifeguard = self.bus.get_object('org.yavdr.lifeguard', "/Lifeguard")
+            lifeguard = self.bus.get_object('org.yavdr.lifeguard',
+                                            "/Lifeguard")
             status, text = lifeguard.Check(dbus_interface=if_lifeguard)
             if not status:
                 logging.debug("lifeguard-ng is not ready to shutdown")
@@ -378,7 +393,8 @@ class Main(dbus.service.Object):
             logging.debug("vdr starting")
 
     def vdrDBusSignal(self):
-        self.bus.watch_name_owner(self.dbus2vdr.vdr_obj, self.name_owner_changed)
+        self.bus.watch_name_owner(self.dbus2vdr.vdr_obj,
+                                  self.name_owner_changed)
 
     def name_owner_changed(self, *args, **kwargs):
         if len(args[0]) == 0:
@@ -393,7 +409,7 @@ class Main(dbus.service.Object):
 
     def set_toggle(self, target):
         while not next(self.switch) == self.target:
-             pass
+            pass
 
     @dbus.service.method('de.yavdr.frontend')
     def quit(self):
@@ -416,16 +432,10 @@ class Settings:
         self.init_parser()
 
     def get_setting(self, category, setting, default):
-        if self.parser.has_option(category, setting):
-            return self.parser.get(category, setting)
-        else:
-            return default
+        return self.parser[category].get(setting, default)
 
     def get_settingb(self, category, setting, default):
-        if self.parser.has_option(category, setting):
-            return self.parser.getboolean(category, setting)
-        else:
-            return default
+        return self.parser[category].getboolean(setting, default)
 
     def init_parser(self, config=None):
         self.parser = configparser.SafeConfigParser(delimiters=(":", "="),
@@ -435,25 +445,42 @@ class Settings:
         with open(self.config, 'r', encoding='utf-8') as f:
             self.parser.readfp(f)
         self.log2file = self.get_settingb('Logging', 'use_file', False)
-        self.logfile = self.get_setting('Logging', 'logfile', "/tmp/frontend.log")
+        self.logfile = self.get_setting('Logging', 'logfile',
+                                        "/tmp/frontend.log")
         self.loglevel = self.get_setting('Logging', 'loglevel', "DEBUG")
+        line_format = '%(asctime)-15s %(levelname)-6s %(message)s'
         if self.log2file:
-            logging.basicConfig(
-                    filename=self.logfile,
-                    level=getattr(logging,self.loglevel),
-                    format='%(asctime)-15s %(levelname)-6s %(message)s',
-            )
+            logging.basicConfig(filename=self.logfile,
+                                level=getattr(logging, self.loglevel),
+                                format=line_format
+                                )
         else:
-            logging.basicConfig(
-                    level=getattr(logging,self.loglevel),
-                    format='%(asctime)-15s %(levelname)-6s %(message)s',
-            )
+            logging.basicConfig(level=getattr(logging, self.loglevel),
+                                format=line_format
+                                )
         # frontend settings: primary: vdr|xbmc
         self.frontend = self.get_setting('Frontend', 'frontend', "vdr")
         self.xbmc = self.get_setting('XBMC', 'xbmc', None)
         # attach always|never|auto
         self.attach = self.get_setting('Frontend', 'attach', 'always')
+        get_tempdisplay = self.get_setting('Frontend', 'get_tempdisplay',
+                                           'dbget vdr.tempdisplay')
+        self.get_tempdisplay = shlex.split(get_tempdisplay)
+        display = self.get_setting('Frontend', 'DISPLAY', ":0")
+        self.update_display(display)
 
+    def update_display(self, display):
+        try:
+            tempdisplay = subprocess.check_output(self.get_tempdisplay
+                                                  ).decode()
+        except:
+            tempdisplay = ""
+        if len(tempdisplay) > 0:
+            logging.debug("got:", display.split(".")[0], tempdisplay)
+            os.environ['DISPLAY'] = display.split(".")[0] + tempdisplay
+            logging.debug("DISPLAY is", os.environ['DISPLAY'])
+        else:
+            os.environ['DISPLAY'] = display.split(".")[0]
 
 class Options():
     def __init__(self):
@@ -468,7 +495,6 @@ class Options():
         return options
 
 
-
 if __name__ == '__main__':
     DBusGMainLoop(set_as_default=True)
     options = Options()
@@ -476,5 +502,5 @@ if __name__ == '__main__':
     main = Main(options.get_options())
     #signal.signal(signal.SIGTERM, sigint)
     #signal.signal(signal.SIGINT, sigint)
-    loop = GObject.MainLoop()
-    loop.run()
+    main.loop = GObject.MainLoop()
+    main.loop.run()

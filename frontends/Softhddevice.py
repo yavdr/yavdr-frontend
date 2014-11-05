@@ -1,38 +1,38 @@
 #!/usr/bin/python3
-import dbus
-from dbus.mainloop.glib import DBusGMainLoop
-dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
+#import dbus
+#from dbus.mainloop.glib import DBusGMainLoop
+#dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
 import logging
-from frontends.base import *
+from frontends.base import vdrFrontend
+import os
 
 
 class Softhddevice(vdrFrontend):
     def __init__(self, main, dbus2vdr, name="softhddevice"):
-                super().__init__(main, dbus2vdr)
-    def get_settings(self):
-        self.options = self.main.settings.get_setting('Softhddevice',
-                                                      'options', '')
+        super().__init__(main, dbus2vdr)
+
+    def get_options(self):
+        options = self.main.settings.get_setting('Softhddevice',
+                                                      'options',
+                                                      '-d {DISPLAY}')
+        return options.format(DISPLAY=os.environ['DISPLAY'])
+
     def attach(self, options=None):
         try:
-            if self.main.settings.get_settingb('Softhddevice',
-                                              'keep_inactive', False):
-                if self.main.dbus2vdr.Shutdown.ConfirmShutdown()[0] == 901:
-                    user_active = True
-                else:
-                    user_active = False
+            if self.main.dbus2vdr.Shutdown.ConfirmShutdown()[0] == 901:
+                user_active = True
+            else:
+                user_active = False
             if not options:
-                options = self.options
+                options = self.get_options()
             code, result = self.main.dbus2vdr.Plugins.SVDRPCommand(
-                                                        "softhddevice",
-                                                        "atta",
-                                                        options)
+                "softhddevice", "atta", options)
             if code == 900 and self.status() == 1:
                 logging.debug("softhddevice successfully attached")
                 self.state = 1
-                if self.main.settings.get_settingb('Softhddevice',
-                                                  'keep_inactive', False):
-                    if not user_active:
-                        self.main.dbus2vdr.Shutdown.SetUserInactive()
+                if (not user_active and self.main.settings.get_settingb(
+                        'Softhddevice', 'keep_inactive', False)):
+                    self.main.dbus2vdr.Shutdown.SetUserInactive()
                 return True
             else:
                 logging.debug(
@@ -46,9 +46,9 @@ class Softhddevice(vdrFrontend):
 
     def detach(self):
         try:
-            code, result =  self.main.dbus2vdr.Plugins.SVDRPCommand(
-                                                                "softhddevice",
-                                                                "deta")
+            code, result = self.main.dbus2vdr.Plugins.SVDRPCommand(
+                "softhddevice",
+                "deta")
             if code == 900 and self.status() == 0:
                 logging.debug("softhddevice successfully detached")
                 self.state = 0
@@ -59,6 +59,7 @@ class Softhddevice(vdrFrontend):
             return False
         except Exception as error:
             logging.exception(error)
+            return False
 
     def resume(self):
         state = self.status()
@@ -67,8 +68,8 @@ class Softhddevice(vdrFrontend):
         elif state == 2:
             try:
                 code, result = self.main.dbus2vdr.Plugins.SVDRPCommand(
-                                                                "softhddevice",
-                                                                "resu")
+                    "softhddevice",
+                    "resu")
                 if code == 900 and self.status() == 1:
                     self.state = 1
                     logging.debug("resumed softhddevice successfully")
