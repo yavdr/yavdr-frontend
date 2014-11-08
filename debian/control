@@ -1,8 +1,8 @@
 Source: yavdr-frontend
-Maintainer: unknown <unknown@unknown>
+Maintainer: seahawk1986 <seahawk1986@hotmail.com>
 Section: misc
 Priority: optional
-Build-Depends: debhelper (>= 7), python3-all python-distutils-extra
+Build-Depends: debhelper (>= 7), python3-all, python-distutils-extra
 Standards-Version: 3.9.1
 X-Python3-Version: >= 3.1
 
@@ -10,3 +10,4 @@ Package: yavdr-frontend
 Architecture: all
 Depends: ${misc:Depends}, ${python3:Depends}, vdr-plugin-dbus2vdr, python3-gi, python3-dbus, python3-dbus2vdr
 Description: yavdr-frontend python script and modules
+
