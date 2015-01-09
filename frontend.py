@@ -3,7 +3,7 @@
 '''
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
+    the Free Software Foundation, either version 2 of the License, or
     (at your option) any later version.
 
     This program is distributed in the hope that it will be useful,
@@ -59,6 +59,7 @@ class Main(dbus.service.Object):
         self.external = False
         self.vdrStatus = 0
         self.wants_shutdown = False
+        self.expect_stop = False
         signal.signal(signal.SIGTERM, self.sigint)
         signal.signal(signal.SIGINT, self.sigint)
         self.lircConnection = lircConnection(self)
@@ -159,6 +160,8 @@ class Main(dbus.service.Object):
 
     @dbus.service.method('de.yavdr.frontend', out_signature='s')
     def tempDisplay(self):
+        self.setBackground(self.settings.get_setting('Frontend', 'bg_attached',
+                                                     None))
         self.settings.update_display(os.environ['DISPLAY'])
         return os.environ['DISPLAY']
 
@@ -201,15 +204,20 @@ class Main(dbus.service.Object):
             GObject.source_remove(self.timer)
         except:
             pass
+        self.setBackground(self.settings.get_setting('Frontend', 'bg_attached',
+                                                     None))
         if not self.external:
             if self.current:
                 return self.frontends[self.current].attach(options)
-            self.setBackground()
+                return True
 
     @dbus.service.method('de.yavdr.frontend', out_signature='b')
-    def detach(self):
+    def detach(self, set_bg=True, expect_stop=True):
+        self.expect_stop = expect_stop
         answer = self.frontends[self.current].detach()
-        self.setBackground()
+        if set_bg:
+            self.setBackground(self.settings.get_setting('Frontend',
+                                                         'bg_detached', None))
         return answer
 
     @dbus.service.method('de.yavdr.frontend', out_signature='b')
@@ -233,11 +241,11 @@ class Main(dbus.service.Object):
     @dbus.service.method('de.yavdr.frontend', out_signature='b')
     def begin_external(self):
         self.external = True
-        self.detach()
+        self.detach(set_bg=False)
         snd_free = False
         while not snd_free:
             logging.debug("check if frontend has freed sound device")
-            fuser_pid = subprocess.Popen(['/usr/sbin/fuser', '-v',
+            fuser_pid = subprocess.Popen(['fuser', '-v',
                                           '/dev/snd/*p'],
                                          stdout=subprocess.PIPE,
                                          stderr=subprocess.PIPE, shell=True)
@@ -266,8 +274,14 @@ class Main(dbus.service.Object):
                                      ) in ['auto', 'always']:
             self.detach()
             logging.debug("add timer for send_shutdown")
-            self.timer = GObject.timeout_add(300000, self.send_shutdown)
+        self.timer = GObject.timeout_add(300000, self.send_shutdown)
         return False
+
+    @dbus.service.method('de.yavdr.frontend', out_signature='b')
+    def init_shutdown(self):
+        if self.current == 'xmbc':
+            self.detach()
+        self.send_shutdown()
 
     @dbus.service.method('de.yavdr.frontend', out_signature='b')
     def send_shutdown(self, user=False):
@@ -285,10 +299,14 @@ class Main(dbus.service.Object):
             logging.debug("send_shutdown: VDR not ready to shut down")
         return True
 
-    @dbus.service.method('de.yavdr.frontend', in_signature='s',
+    @dbus.service.method('de.yavdr.frontend', in_signature='ss',
                          out_signature='b')
-    def setBackground(self, path=None):
+    def setBackground(self, path=None, display=None):
         status = self.status()
+        old_display = None
+        if display:
+            old_display = os.environ['DISPLAY']
+            os.environ['DISPLAY'] = display
         logging.debug("setBackground: status is %s, type is %s" %
                       (status, type(status)))
         if status == 0:
@@ -311,6 +329,9 @@ class Main(dbus.service.Object):
             pass
         else:
             pass
+        if old_display:
+            os.environ['DISPLAY'] = old_display
+        return True
 
     def inhibit(self, what='sleep:shutdown', who='First Base',
                 why="left field", mode="block"):
@@ -437,6 +458,12 @@ class Settings:
     def get_settingb(self, category, setting, default):
         return self.parser[category].getboolean(setting, default)
 
+    def get_settingi(self, category, setting, default):
+        return self.parser[category].getint(setting, default)
+
+    def get_settingf(self, category, setting, default):
+        return self.parser[category].getfloat(setting, default)
+
     def init_parser(self, config=None):
         self.parser = configparser.SafeConfigParser(delimiters=(":", "="),
                                                     interpolation=None
@@ -467,6 +494,7 @@ class Settings:
                                            'dbget vdr.tempdisplay')
         self.get_tempdisplay = shlex.split(get_tempdisplay)
         display = self.get_setting('Frontend', 'DISPLAY', ":0")
+        logging.debug(display)
         self.update_display(display)
 
     def update_display(self, display):
@@ -481,6 +509,8 @@ class Settings:
             logging.debug("DISPLAY is", os.environ['DISPLAY'])
         else:
             os.environ['DISPLAY'] = display.split(".")[0]
+        logging.debug("DISPLAY: %s", os.environ['DISPLAY'])
+
 
 class Options():
     def __init__(self):
