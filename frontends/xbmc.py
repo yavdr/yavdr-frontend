@@ -99,6 +99,9 @@ class XBMC():
                 else:
                     logging.debug("call completeFrontendSwitch")
                     self.main.completeFrontendSwitch()
+            elif self.main.expect_stop and not self.main.external:
+                 self.main.switchFrontend()
+                 self.main.completeFrontendSwitch()
             elif condition < 16384:
                 logging.warn("abnormal exit: %s", condition)
                 if (self.main.current == "xbmc" and
