@@ -152,7 +152,7 @@ class lircConnection():
                                                            None):
                     if self.main.status() == 1:
                         self.main.wants_shutdown = True
-			self.main.init_shutdown()
+                        self.main.init_shutdown()
                         self.main.timer = GObject.timeout_add(
                             15000, self.main.soft_detach)
         return True
