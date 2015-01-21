@@ -99,9 +99,6 @@ class XBMC():
                 else:
                     logging.debug("call completeFrontendSwitch")
                     self.main.completeFrontendSwitch()
-            elif self.main.expect_stop and not self.main.external:
-                 self.main.switchFrontend()
-                 self.main.completeFrontendSwitch()
             elif condition < 16384:
                 logging.warn("abnormal exit: %s", condition)
                 if (self.main.current == "xbmc" and
@@ -124,6 +121,18 @@ class XBMC():
                 logging.info("XBMC wants a reboot")
                 #logging.info(self.main.powermanager.restart())
                 # TODO: Reboot implementation via logind?
+            else:
+                logging.warn("abnormal exit: %s", condition)
+                if (self.main.current == "xbmc" and
+                        self.main.settings.frontend == "xbmc"):
+                    logging.debug("resume xbmc after crash")
+                    self.main.frontends[self.main.current].resume()
+                elif self.main.current == "xbmc":
+                    logging.debug("switch frontend after crash")
+                    self.main.switchFrontend()
+                else:
+                    logging.debug("complete switch to other frontend")
+                    self.main.completeFrontendSwitch()
                 self.main.switchFrontend()
         try:
             os.close(self.inhibitor.take())

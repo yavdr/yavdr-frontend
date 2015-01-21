@@ -52,6 +52,7 @@ class lircConnection():
             GObject.timeout_add(1000, self.try_connection)
             try:
                 if self.callback:
+                    logging.debug("lirc_socket.py: remove callback function")
                     GObject.source_remove(self.callback)
             except:
                 logging.exception(
@@ -59,100 +60,111 @@ class lircConnection():
                 pass
             return False
 
+    def read_from_socket(self, sock):
+        buf = sock.recv(1024)
+        if not buf:
+            logging.debug("read_from_socket(): call reset_lirc")
+            self.reset_lirc(sock)
+        else:
+            return buf
+
+    def reset_lirc(self, sock):
+        sock.close()
+        try:
+            GObject.source_remove(self.callback)
+        except:
+            pass
+        logging.exception('retry lirc connection')
+        self.try_connection()
+
     def handler(self, sock, *args):
         '''callback function for activity on lircd socket'''
         try:
-            buf = sock.recv(1024)
-            if not buf:
-                self.sock.close()
-                try:
-                    if self.callback:
-                        logging.debug("remove callback for lircd socket")
-                        GObject.source_remove(self.callback)
-                except:
-                    pass
-                logging.error("Error reading from lircd socket")
-                self.try_connection()
-                return False
+            buf = self.read_from_socket(sock)
         except:
-            sock.close()
-            try:
-                GObject.source_remove(self.callback)
-            except:
-                pass
-            logging.exception('retry lirc connection')
-            self.try_connection()
-            return True
-        lines = buf.decode().split("    n")
+            logging.debug("handler: call reset_lirc")
+            self.reset_lirc()
+        lines = buf.decode().split("\n")
         for line in lines:
+            if len(line) > 0:
+                try:
+                    self.get_key(line)
+                except:
+                    logging.exception("could not parse: %s" % line)
+        return True
+
+    def get_key(self, line):
             logging.debug("got a key press")
-            try:
-                code, count, cmd, device = line.split(" ")[:4]
-                timestamp = self.last_ts
-                previous_key = self.last_key
-                self.last_key = cmd
-                self.last_ts = time.time()
-                if count != "0":
-                    logging.debug('repeated keypress')
-                    return True
-                elif (self.last_ts - timestamp < self.delta_t and
-                      self.last_key == previous_key):
-                    logging.debug('ignoring keypress within min_delta')
-                    return True
-                else:
-                    try:
-                        logging.debug("remove main.timer")
-                        GObject.source_remove(self.main.timer)
-                    except:
-                        #pass
-                        logging.debug("could not remove timer")
-            except:
-                logging.exception(line)
-                return True
-            logging.debug('Key press: %s', cmd)
+            logging.debug("line: %s" % line)
+            code, count, cmd, device = line.split(" ")[:4]
+            timestamp = self.last_ts
+            previous_key = self.last_key
+            self.last_key = cmd
+            self.last_ts = time.time()
+            if count != "0":
+                logging.debug('repeated keypress')
+                return
+            elif (self.last_ts - timestamp < self.delta_t and
+                  self.last_key == previous_key):
+                logging.debug('ignoring keypress within min_delta')
+            else:
+                try:
+                    logging.debug("remove main.timer")
+                    GObject.source_remove(self.main.timer)
+                except:
+                    logging.debug("could not remove timer")
+                logging.debug('Key press: %s', cmd)
+                self.key_action(code, count, cmd, device)
+
+    def key_action(self, code, count, cmd, device):
             logging.debug("current frontend: %s", self.main.current)
             if self.main.current == 'vdr':
-                logging.debug("keypress for vdr")
-                if cmd == self.main.settings.get_setting("Frontend",
-                                                         "lirc_toggle", None):
-                    if self.main.status() == 1:
-                        self.main.detach()
-                    else:
-                        self.main.frontends[self.main.current].resume()
-                    return True
-                elif cmd == self.main.settings.get_setting("Frontend",
-                                                           'lirc_switch',
-                                                           None):
-                    logging.debug("lirc.py: switchFrontend")
-                    self.main.switchFrontend()
-                    return True
-
-                elif cmd == self.main.settings.get_setting("Frontend",
-                                                           'lirc_power', None):
-                    if self.main.status() == 1:
-                        if self.main.current == 'xbmc':
-                            self.main.init_shutdown()
-                        else:
-                            self.main.timer = GObject.timeout_add(
-                            15000, self.main.soft_detach)
-                    else:
-                        self.main.send_shutdown()
-                elif self.main.status != 1:
-                    self.main.resume()
+                self.vdr_key_action(code, count, cmd, device)
             elif self.main.current == 'xbmc':
-                logging.debug("keypress for xbmc")
-                if cmd == self.main.settings.get_setting("Frontend",
-                                                         'lirc_switch',
-                                                         None):
-                    logging.info('stop XBMC via remote lirc_xbmc')
-                    self.main.switchFrontend()
-                    return True
-                elif cmd == self.main.settings.get_setting("Frontend",
-                                                           'lirc_power',
-                                                           None):
-                    if self.main.status() == 1:
-                        self.main.wants_shutdown = True
-                        self.main.init_shutdown()
-                        self.main.timer = GObject.timeout_add(
-                            15000, self.main.soft_detach)
+                self.xbmc_key_action(code, count, cmd, device)
+            else:
+                logging.debug("keypress for other frontend")
+                logging.debug("current frontend is: %s" % self.main.current)
+                logging.debug("vdrStatus is: %s" % self.main.vdrStatus)
+                logging.debug("frontend status is: %s" % self.main.status())
+
+    def vdr_key_action(self, code, count, cmd, device):
+        logging.debug("keypress for vdr")
+        if cmd == self.main.settings.get_setting("Frontend",
+                                                 "lirc_toggle", None):
+            logging.debug("lirc_socket.py: toggleFrontend")
+            self.main.toggleFrontend()
+        elif cmd == self.main.settings.get_setting("Frontend",
+                                                   'lirc_switch', None):
+            logging.debug("lirc_socket.py: switchFrontend")
+            self.main.switchFrontend()
+
+        elif cmd == self.main.settings.get_setting("Frontend",
+                                                   'lirc_power', None):
+            if self.main.status() == 1:
+                self.main.timer = GObject.timeout_add(15000,
+                                                      self.main.soft_detach)
+            else:
+                self.main.send_shutdown()
+        elif self.main.status() != 1:
+            logging.debug("main status is: %s" % self.main.status)
+            self.main.resume()
+        else:
+            logging.debug("lic_socket.py: no action necessary")
+
+    def xbmc_key_action(self, code, count, cmd, device):
+        logging.debug("keypress for xbmc")
+        if cmd == self.main.settings.get_setting("Frontend",
+                                                 'lirc_switch',
+                                                 None):
+            logging.info('lirc_socket.py: switch from XBMC to VDR')
+            self.main.switchFrontend()
+        elif cmd == self.main.settings.get_setting("Frontend",
+                                                   'lirc_power',
+                                                   None):
+            if self.main.status() == 1:
+                self.main.wants_shutdown = True
+                self.main.init_shutdown()
+                self.main.timer = GObject.timeout_add(
+                    15000, self.main.soft_detach)
         return True

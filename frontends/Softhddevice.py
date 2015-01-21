@@ -89,4 +89,5 @@ class Softhddevice(vdrFrontend):
             state = 2
         elif code == 912:
             state = 0
+        logging.debug("softhddevice: got status code: %s" % code)
         return state
