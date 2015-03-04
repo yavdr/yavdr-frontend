@@ -147,7 +147,7 @@ class lircConnection():
             logging.debug("main status is: %s" % self.main.status)
             self.main.resume()
         else:
-            logging.debug("lic_socket.py: no action necessary")
+            logging.debug("lirc_socket.py: no action necessary")
 
     def kodi_key_action(self, code, count, cmd, device):
         logging.debug("keypress for kodi")
