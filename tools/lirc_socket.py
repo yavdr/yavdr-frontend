@@ -5,7 +5,6 @@
 from gi.repository import GObject
 import logging
 import socket
-#import string
 import time
 from dbus.mainloop.glib import DBusGMainLoop
 DBusGMainLoop(set_as_default=True)
@@ -94,39 +93,37 @@ class lircConnection():
         return True
 
     def get_key(self, line):
-            logging.debug("got a key press")
-            logging.debug("line: %s" % line)
-            code, count, cmd, device = line.split(" ")[:4]
-            timestamp = self.last_ts
-            previous_key = self.last_key
-            self.last_key = cmd
-            self.last_ts = time.time()
-            if count != "0":
-                logging.debug('repeated keypress')
-                return
-            elif (self.last_ts - timestamp < self.delta_t and
-                  self.last_key == previous_key):
-                logging.debug('ignoring keypress within min_delta')
-            else:
-                try:
-                    logging.debug("remove main.timer")
-                    GObject.source_remove(self.main.timer)
-                except:
-                    logging.debug("could not remove timer")
-                logging.debug('Key press: %s', cmd)
-                self.key_action(code, count, cmd, device)
-
-    def key_action(self, code, count, cmd, device):
-            logging.debug("current frontend: %s", self.main.current)
-            if self.main.current == 'vdr':
-                self.vdr_key_action(code, count, cmd, device)
-            elif self.main.current == 'xbmc':
-                self.xbmc_key_action(code, count, cmd, device)
-            else:
-                logging.debug("keypress for other frontend")
-                logging.debug("current frontend is: %s" % self.main.current)
-                logging.debug("vdrStatus is: %s" % self.main.vdrStatus)
-                logging.debug("frontend status is: %s" % self.main.status())
+        logging.debug("got a key press")
+        logging.debug("line: %s" % line)
+        code, count, cmd, device = line.split(" ")[:4]
+        timestamp = self.last_ts
+        previous_key = self.last_key
+        self.last_key = cmd
+        self.last_ts = time.time()
+        if count != "0":
+            logging.debug('repeated keypress')
+            return
+        elif (self.last_ts - timestamp < self.delta_t and
+              self.last_key == previous_key):
+            logging.debug('ignoring keypress within min_delta')
+            return
+        else:
+            try:
+                logging.debug("remove main.timer")
+                GObject.source_remove(self.main.timer)
+            except:
+                logging.debug("could not remove timer")
+        logging.debug('Key press: %s', cmd)
+        logging.debug("current frontend: %s", self.main.current)
+        if self.main.current == 'vdr':
+            self.vdr_key_action(code, count, cmd, device)
+        elif self.main.current == 'kodi':
+            self.kodi_key_action(code, count, cmd, device)
+        else:
+            logging.debug("keypress for other frontend")
+            logging.debug("current frontend is: %s" % self.main.current)
+            logging.debug("vdrStatus is: %s" % self.main.vdrStatus)
+            logging.debug("frontend status is: %s" % self.main.status())
 
     def vdr_key_action(self, code, count, cmd, device):
         logging.debug("keypress for vdr")
@@ -152,19 +149,20 @@ class lircConnection():
         else:
             logging.debug("lic_socket.py: no action necessary")
 
-    def xbmc_key_action(self, code, count, cmd, device):
-        logging.debug("keypress for xbmc")
+    def kodi_key_action(self, code, count, cmd, device):
+        logging.debug("keypress for kodi")
         if cmd == self.main.settings.get_setting("Frontend",
-                                                 'lirc_switch',
-                                                 None):
-            logging.info('lirc_socket.py: switch from XBMC to VDR')
+                                                 'lirc_switch', None):
+            logging.info('lirc_socket.py: switch from KODI to VDR')
             self.main.switchFrontend()
         elif cmd == self.main.settings.get_setting("Frontend",
-                                                   'lirc_power',
-                                                   None):
+                                                   'lirc_power', None):
             if self.main.status() == 1:
                 self.main.wants_shutdown = True
                 self.main.init_shutdown()
                 self.main.timer = GObject.timeout_add(
                     15000, self.main.soft_detach)
+        elif self.main.status() != 1:
+            logging.debug("main status is: %s" % self.main.status)
+            self.main.resume()
         return True

@@ -1,7 +1,7 @@
-yavdr-frontend
+arch-frontend
 =============
 
-Manage vdr-frontends and XBMC from within a user session
+Manage vdr-frontends and KODI from within a user session
 
 To stop the script (there are still some signal handling issues) use
 

@@ -1,4 +1,5 @@
 #!/usr/bin/python3
+# -*- coding: utf-8 -*-
 # Alexander Grothe, June 2013
 '''
     This program is free software: you can redistribute it and/or modify
@@ -33,7 +34,7 @@ import sys
 from dbus2vdr import DBus2VDR
 from frontends.base import vdrFrontend
 from frontends.Softhddevice import Softhddevice
-from frontends.xbmc import XBMC
+from frontends.kodi import KODI
 from frontends.xineliboutput import VDRsxfe
 from frontends.xine import Xine
 from tools.lirc_socket import lircConnection
@@ -71,7 +72,7 @@ class Main(dbus.service.Object):
         self.dbus2vdr = DBus2VDR(dbus.SystemBus(), instance=0)
         self.frontends = {}
         self.frontends['vdr'] = self.get_vdrFrontend()
-        self.frontends['xbmc'] = self.get_xbmcFrontend()
+        self.frontends['kodi'] = self.get_kodiFrontend()
         for frontend, obj in self.frontends.items():
             if not obj:
                 logging.warning("using dummy frontend")
@@ -103,12 +104,12 @@ class Main(dbus.service.Object):
             self.current = self.settings.frontend
             self.setBackground()
             return
-        elif self.current == 'xbmc' or (self.settings.frontend == 'xbmc' and
+        elif self.current == 'kodi' or (self.settings.frontend == 'kodi' and
                                         not self.current):
-            self.frontends['xbmc'].attach()
-            self.current = 'xbmc'
+            self.frontends['kodi'].attach()
+            self.current = 'kodi'
             self.dbus2vdr.Remote.Disable()
-            logging.debug('startup: frontend is xbmc')
+            logging.debug('startup: frontend is kodi')
         elif self.current == 'vdr' or (self.settings.frontend == 'vdr' and
                                        not self.current):
             # check if vdr is ready
@@ -133,10 +134,12 @@ class Main(dbus.service.Object):
 
     @dbus.service.method('de.yavdr.frontend', out_signature='i')
     def checkFrontend(self):
+        """return status of current frontend"""
         return self.status()
 
     @dbus.service.method('de.yavdr.frontend', out_signature='b')
     def toggleFrontend(self):
+        """toggle between active and inactive frontend"""
         if self.status() == 1:
             self.detach()
         else:
@@ -145,6 +148,7 @@ class Main(dbus.service.Object):
 
     @dbus.service.method('de.yavdr.frontend', out_signature='s')
     def switchFrontend(self):
+        """switch from vdr frontend to kodi and vice versa"""
         if self.status() == 2:
             self.resume()
         if self.current == 'vdr':
@@ -154,12 +158,13 @@ class Main(dbus.service.Object):
         logging.debug("next frontend is {0}".format(self.current))
         if self.frontends[old].status():
             self.frontends[old].detach()
-        if self.current == "xbmc":
+        if self.current == "kodi":
             self.attach()
         return self.getFrontend()
 
     @dbus.service.method('de.yavdr.frontend', out_signature='s')
     def tempDisplay(self):
+        """show currently used display"""
         self.setBackground(self.settings.get_setting('Frontend', 'bg_attached',
                                                      None))
         self.settings.update_display(os.environ['DISPLAY'])
@@ -169,6 +174,7 @@ class Main(dbus.service.Object):
                          in_signature='s',
                          out_signature='b')
     def setDisplay(self, display=None):
+        """set DISPLAY varible for internal use"""
         if display:
             os.env['DISPLAY'] = display
             return True
@@ -193,9 +199,10 @@ class Main(dbus.service.Object):
 
     @dbus.service.method('de.yavdr.frontend', out_signature='s')
     def getFrontend(self):
-            m = "current frontend is {0}".format(self.frontends[self.current
-                                                                ].name)
-            return m
+        """return current frontend"""
+        m = "current frontend is {0}".format(
+            self.frontends[self.current].name)
+        return m
 
     @dbus.service.method('de.yavdr.frontend', in_signature='s',
                          out_signature='b')
@@ -225,7 +232,6 @@ class Main(dbus.service.Object):
         if not self.external:
             status = self.frontends[self.current].resume()
             self.dbus2vdr.Remote.Enable()
-            # TODO: change background
             self.setBackground()
             return status
 
@@ -252,12 +258,12 @@ class Main(dbus.service.Object):
             fuser_pid.wait()
             stdout, stderr = fuser_pid.communicate()
             logging.debug("fuser output: %s", stderr)
-            if ("xbmc") in str(stderr) or str(stderr).endswith("vdr"):
+            if ("kodi") in str(stderr) or str(stderr).endswith("vdr"):
                 snd_free = False
                 time.sleep(0.25)
             else:
                 snd_free = True
-                logging.debug('xbmc has freed sound device')
+                logging.debug('kodi has freed sound device')
 
         return True
 
@@ -309,15 +315,10 @@ class Main(dbus.service.Object):
             os.environ['DISPLAY'] = display
         logging.debug("setBackground: status is %s, type is %s" %
                       (status, type(status)))
-        if status == 0:
-            logging.debug("status is 0")
-            if not path:
-                logging.debug(self.settings.get_setting('Frontend',
-                                                        'bg_detached', None))
+        if status == 0 and not path:
                 path = self.settings.get_setting('Frontend', 'bg_detached',
                                                  None)
-        elif status == 1:
-            if not path:
+        elif status == 1 and not path:
                 path = self.settings.get_setting('Frontend', 'bg_attached',
                                                  None)
         logging.debug("Background path is %s" % path)
@@ -326,9 +327,6 @@ class Main(dbus.service.Object):
             logging.debug("command for setting bg is: %s" % (
                 " ".join(command)))
             subprocess.call(command, env=os.environ)
-            pass
-        else:
-            pass
         if old_display:
             os.environ['DISPLAY'] = old_display
         return True
@@ -362,29 +360,29 @@ class Main(dbus.service.Object):
 
     def get_vdrFrontend(self):
         if self.dbus2vdr.Plugins.check_plugin('softhddevice'):
-            return Softhddevice(self, 'softhddevice')
+            frontend = Softhddevice(self, 'softhddevice')
         elif self.dbus2vdr.Plugins.check_plugin('xineliboutput'):
-            return VDRsxfe(self, 'vdr-sxfe')
+            frontend = VDRsxfe(self, 'vdr-sxfe')
         elif self.dbus2vdr.Plugins.check_plugin('xine'):
-            return Xine(self, 'xine')
-
+            frontend = Xine(self, 'xine')
         else:
             logging.warning("no vdr frontend found")
-            return None
-        logging.debug("primary frontend is {0}".format(self.frontend.name))
+            frontend = None
+        logging.debug("primary frontend is {0}".format(frontend.name))
+        return frontend
 
-    def get_xbmcFrontend(self):
-        if self.settings.xbmc and not self.current == 'xbmc':
-            return XBMC(self)
-        elif self.current == 'xbmc':
+    def get_kodiFrontend(self):
+        if self.settings.kodi and not self.current == 'kodi':
+            return KODI(self)
+        elif self.current == 'kodi':
             return self.frontends[self.current]
         else:
-            logging.warning("no XBMC configuration found")
+            logging.warning("no KODI configuration found")
             return None
 
     def onStart(self, *args, **kwargs):
         print("VDR Ready")
-        if self.current == 'xbmc':
+        if self.current == 'kodi':
             self.restart()
         else:
             self.prepare()
@@ -402,7 +400,7 @@ class Main(dbus.service.Object):
         logging.debug(args)
         if kwargs['member'] == "Ready":
             logging.debug("vdr ready")
-            if self.current == 'xbmc':
+            if self.current == 'kodi':
                 self.restart()
             else:
                 self.prepare()
@@ -485,9 +483,9 @@ class Settings:
             logging.basicConfig(level=getattr(logging, self.loglevel),
                                 format=line_format
                                 )
-        # frontend settings: primary: vdr|xbmc
+        # frontend settings: primary: vdr|kodi
         self.frontend = self.get_setting('Frontend', 'frontend', "vdr")
-        self.xbmc = self.get_setting('XBMC', 'xbmc', None)
+        self.kodi = self.get_setting('KODI', 'kodi', None)
         # attach always|never|auto
         self.attach = self.get_setting('Frontend', 'attach', 'always')
         get_tempdisplay = self.get_setting('Frontend', 'get_tempdisplay',
@@ -530,7 +528,5 @@ if __name__ == '__main__':
     options = Options()
     global main
     main = Main(options.get_options())
-    #signal.signal(signal.SIGTERM, sigint)
-    #signal.signal(signal.SIGINT, sigint)
     main.loop = GObject.MainLoop()
     main.loop.run()

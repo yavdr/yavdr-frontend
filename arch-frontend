@@ -17,7 +17,7 @@ import sys
 from dbus2vdr import DBus2VDR
 from frontends.base import vdrFrontend
 from frontends.Softhddevice import Softhddevice
-from frontends.xbmc import XBMC
+from frontends.kodi import KODI
 from frontends.xineliboutput import VDRsxfe
 from tools.lirc_socket import lircConnection
 
